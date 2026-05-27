@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 """
 GridCast - Training Pipeline
-Triple Loss: Reconstruction (MSE), Pressure Conservation, and Surface Tension (TV Loss).
+Triple Loss: Class-Weighted Cross-Entropy (Reconstruction), Pressure Conservation, and Surface Tension (TV Loss).
 Tracks execution using structured logging and exports diagnostic fluid timelines.
 """
 import logging
@@ -58,8 +58,13 @@ def train(epochs: int = 250, steps_per_epoch: int = 32, lr: float = 1e-3):
     env = GridCastEnvironment(steps=12, width=30, height=30)
     model = HydraulicRoutingNetwork(in_channels=16, hidden_dim=32).to(device)
     
+    # Define channel scaling weights to counteract background domination
+    # Gives 50x higher critical feedback to active color dyes (Z=1..9) over Solvent (Z=0)
+    channel_weights = torch.ones(10, device=device)
+    channel_weights[1:10] = 50.0
+    
     optimizer = optim.Adam(model.parameters(), lr=lr)
-    criterion_reconstruction = nn.MSELoss()
+    criterion_reconstruction = nn.CrossEntropyLoss(weight=channel_weights)
     
     # Create diagnostics output folder
     os.makedirs("diagnostics", exist_ok=True)
@@ -77,7 +82,6 @@ def train(epochs: int = 250, steps_per_epoch: int = 32, lr: float = 1e-3):
             input_b, target_b = dataset.generate_single_trajectory()
             
             # Conv3D expects input shape: (Batch, Channels, Time, X, Y)
-            # Our dataset outputs standard circuit layout: (Time, Channels, X, Y)
             input_tensor = input_b.permute(1, 0, 2, 3).unsqueeze(0).to(device)
             target_tensor = target_b.permute(1, 0, 2, 3).unsqueeze(0).to(device)
             
@@ -86,13 +90,16 @@ def train(epochs: int = 250, steps_per_epoch: int = 32, lr: float = 1e-3):
             # Forward execution through neural plumbing
             predictions = model(input_tensor)
             
+            # Cross-Entropy needs target discrete indices rather than raw dense volumes
+            # Shape transformation: (Batch, Channels, Time, X, Y) -> (Batch, Time, X, Y)
+            target_indices = torch.argmax(target_tensor[:, 0:10], dim=1)
+            
             # Calculate components of the Triple Loss
-            loss_recon = criterion_reconstruction(predictions[:, 0:10], target_tensor[:, 0:10])
+            loss_recon = criterion_reconstruction(predictions[:, 0:10], target_indices)
             loss_press = loss_pressure_conservation(predictions)
             loss_tv = loss_cohesion_couleur(predictions)
             
-            # Total Loss Balancing Coefficients
-            # Give high priority to reconstruction and containment stability
+            # Balanced hyperparameter optimization criteria
             total_loss = loss_recon + 0.5 * loss_press + 0.05 * loss_tv
             
             # Backward pass & optimization step
@@ -105,7 +112,7 @@ def train(epochs: int = 250, steps_per_epoch: int = 32, lr: float = 1e-3):
             epoch_tv_loss += loss_tv.item()
             epoch_total_loss += total_loss.item()
             
-        # Standardize metric metrics over the batch steps
+        # Standardize metric telemetry over the epoch run
         avg_recon = epoch_recon_loss / steps_per_epoch
         avg_press = epoch_press_loss / steps_per_epoch
         avg_tv = epoch_tv_loss / steps_per_epoch
@@ -119,10 +126,9 @@ def train(epochs: int = 250, steps_per_epoch: int = 32, lr: float = 1e-3):
             )
             
             # Visual Diagnostic Generation
-            # Detach the first sample, run it through the environment's hard seal layer, and plot
             model.eval()
             with torch.no_grad():
-                sample_pred = predictions[0].permute(1, 0, 2, 3).cpu() # Return back to (T, C, X, Y)
+                sample_pred = predictions[0].permute(1, 0, 2, 3).cpu()  # Return back to (T, C, X, Y)
                 sealed_sample = env.enforce_containment(sample_pred)
                 
                 # Plot the model's decoded prediction timeline
