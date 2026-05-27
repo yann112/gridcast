@@ -1,0 +1,26 @@
+Metadata-Version: 2.4
+Name: gridcast
+Version: 0.1.0
+Summary: Architecture hydro-dynamique continue pour ARC-Prize 2026
+Classifier: Programming Language :: Python :: 3
+Classifier: License :: OSI Approved :: MIT License
+Classifier: Operating System :: POSIX :: Linux
+Requires-Python: >=3.9
+Description-Content-Type: text/markdown
+Requires-Dist: torch
+Requires-Dist: numpy
+
+# GridCast 🏭
+
+Architecture hydro-dynamique continue pour la résolution de l'ARC-Prize 2026.
+Système à univers-bloc statique 4D ($12 \times 16 \times 30 \times 30$) basé sur l'étanchéité des flux et la courbure du calque de phase.
+
+## Canaux de l'Usine (Z=0 à Z=15)
+* `Z=0`   : Matière Noire (Solvant, $\sum = 1.0$)
+* `Z=1..9`: Pigments (Couleurs ARC)
+* `Z=10`  : Masque de Calibrage (Décors fixes)
+* `Z=11`  : Pupitre de Commande (DSL)
+* `Z=12`  : Gabarit d'Isolation (Ciblage)
+* `Z=13`  : Bloc Ascenseur (Tunnel de transfert)
+* `Z=14`  : Calque de Phase (Courbure spatio-temporelle)
+* `Z=15`  : Anti-matière (Limites topologiques du donut)
