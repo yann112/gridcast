@@ -1,27 +1,37 @@
-cat << 'EOF' > README.md
-# GridCast 🏭
+# Physics-Aware ARC Puzzle Solver Environment
 
-Continuous hydro-dynamic framework for solving the ARC-Prize 2026 challenge.
-A static 4D block-universe system ($12 \times 16 \times 30 \times 30$) driven by strict fluid tight-containment laws and pressure gradient pathfinding.
+## Overview
+A continuous physics simulation environment designed to transform ARC puzzles from discrete input-output mappings into continuous trajectory learning problems. Instead of learning direct input→output transformations, this environment models the underlying physical processes that govern puzzle transformations, enabling neural networks to learn the "physics" of puzzle-solving rather than memorizing pattern mappings.
 
-## Factory Channels (Z=0 to Z=15)
-* `Z=0`     : **Base Solvent** (Neutral carrier fluid, hydraulic buffer for volume equalization)
-* `Z=1..9`  : **Chemical Dyes** (The 9 visible ARC colors represented as continuous reactants/floats)
-* `Z=10`    : **Structural Pipes** (Immutable layout boundaries / passive solid walls)
-* `Z=11`    : **Valve Actuators** (Logic layer containing execution routines and operation triggers)
-* `Z=12`    : **Zone Gaskets** (Surgical local masking used to seal off or isolate specific shapes)
-* `Z=13`    : **Bypass Conduit** (Underground auxiliary layer for non-destructive transport and 90° matrix rotations)
-* `Z=14`    : **Pressure Gradient** (Spatio-temporal coordinate field dictating fluid velocity and automatic obstacle steering)
-* `Z=15`    : **Drain Vents** (Active exhaust fields that instantly flush incoming dyes and trigger solvent backfill)
+## Key Features
+- **Anthropic Temporal Buffer**: Flexible T-dimension accommodates operations of varying durations
+- **Physics-Based Dynamics**: Realistic transfer mechanics with intermediate states, elastic timing, and containment rules  
+- **Trajectory Learning**: Generates complete transformation sequences for continuous learning
+- **Masked Reconstruction**: Trains models to reconstruct hidden physics dynamics from partial observations
 
-## Core Hydraulic Invariants
-1. **Hydraulic Equilibrium**: System volume is strictly sealed. Every individual coordinate node must satisfy the pressure constraint $\sum Z_{0..9} = 1.0$ at any given entropy step. Dyes cannot expand without displacing the Base Solvent.
-2. **Toroidal Circuit (Donut Flow)**: Pipe layouts form a closed, looping circuit. Grid edges are natively connected along both axes using seamless circular shifts (`torch.roll`), allowing fluid to pass through a boundary and reappear on the opposite side.
-3. **Dynamic Venting**: Active `Drain Vents` (`Z=15`) act as open pressure relief zones. Any `Chemical Dye` pushed into these zones is instantly flushed out to `0.0`, with the `Base Solvent` (`Z=0`) vacuum-filling the void to maintain circuit stability.
+## Architecture
+- **State Space**: 16-channel grid with specialized layers for content (0-9), walls (10), transfer mechanics (13), commands (14), and elastic timing (15)
+- **Action Space**: Drain commands that trigger controlled transfers between layers
+- **Physics Engine**: Elastic-timed, half-state transition mechanics with wall containment
+- **Training Paradigm**: Full trajectory generation with selective masking for reconstruction learning
 
-## Project Architecture
-* `gridcast/core/environment.py`: Monitors and stabilizes hydraulic integrity, mitigating floating-point drift via L1 projective normalization.
-* `gridcast/core/generator.py`: Contains pure matrix operators for hydraulic displacement, sédimentation, and closed-loop routing.
-* `gridcast/core/phase_factory.py`: Generates the continuous vector fields and slopes for the `Pressure Gradient` channel.
-* `gridcast/models/model.py`: Frugal `Conv3D` network designed to map current routing states to execution steps by following gradient lines.
-EOF
+## Continuous Physics Design
+The environment employs **continuous state representations** crucial for each operation:
+
+- **Intermediate States (0.5)**: Enables gradual transitions rather than instantaneous changes
+- **Progress Tracking**: Each cell can be at different phases (0.0→0.5→1.0) independently  
+- **Spatial Heterogeneity**: Allows local variation in operation speeds across the grid
+- **Neural Control**: Enables CNNs to learn smooth modulation of physical parameters
+- **Future Extensibility**: Foundation for curved/spatially-varying physics operations
+
+This continuous approach ensures that operations can adapt their behavior locally while maintaining global consistency, providing the neural network with rich, gradient-friendly physics representations.
+
+## Usage
+Designed for generating training datasets where models learn to predict complete transformation physics from partial observations, potentially leading to more robust generalization on novel puzzle configurations.
+
+## Visualization
+Integrated plotting tools to inspect:
+- Raw input/output grids with actual colors
+- Encoded tensors in grayscale (black=0, grey=0.5, white=1)  
+- Individual physics channels with hover details (value, layer name, coordinates)
+- All 16 channels simultaneously for debugging physics mechanics

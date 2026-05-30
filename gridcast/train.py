@@ -13,7 +13,7 @@ import torch.nn as nn
 from gridcast.models.model import HydraulicRoutingNetwork
 from gridcast.utils.synthetic_generator import SyntheticHydraulicDataset
 from gridcast.core.environment import GridCastEnvironment
-from gridcast.utils.flow_visualizer import plot_hydraulic_trajectory
+from gridcast.utils.visualizer import plot_hydraulic_trajectory
 
 # Configure industrial logging format
 logging.basicConfig(

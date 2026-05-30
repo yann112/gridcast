@@ -16,7 +16,7 @@ classifiers = [
 dependencies = [
     "torch",
     "numpy",
-    "matplotlib",
+    "plotly",
 ]
 
 [tool.setuptools.packages.find]

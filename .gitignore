@@ -1,0 +1,28 @@
+# Python cache
+__pycache__/
+*.py[cod]
+*.pyo
+ 
+# pytest cache
+.pytest_cache/
+ 
+# Virtual environment
+.venv/
+venv/
+env/
+ 
+# Generated outputs
+full_analysis.html
+*.html
+ 
+# VS Code
+.vscode/
+ 
+# Distribution / build
+dist/
+build/
+*.egg-info/
+ 
+# Misc
+.DS_Store
+*.log
